@@ -2,10 +2,12 @@
 # needs to be run as part of config job
 
 END {
+	if (HAS_DIED=="true") {
+		exit -1
+	}
 	# check that some rules defined
 	if (length(rules)==0) {
-		print "ERROR: No rules defined in awkweb.ini"
-		exit -1
+		die("ERROR: No rules defined in awkweb.ini")
 	}
 
 	# make renderer array
@@ -31,8 +33,7 @@ END {
 		} else if (p_rule["type"] == "blogroll") {
 			print "BUILD_" toupper(rule) "=build/" rule
 			if (p_rule["src"]=="") {
-				print "ERROR: No src for rule " rule
-				exit -1
+				die("ERROR: No src for rule " rule)
 			}
 		
 			find_cmd =  "SRC_" toupper(rule) "=$(shell find " p_rule["src"] " -false" 
@@ -43,8 +44,7 @@ END {
 			find_cmd = find_cmd ")"
 			print find_cmd
 		} else {
-			print "ERROR: Unrecognized rule type: " p_rule["type"]
-			exit -1
+			die("ERROR: Unrecognized rule type: " p_rule["type"])
 		}
 	}
 

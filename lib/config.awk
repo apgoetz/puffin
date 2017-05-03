@@ -11,8 +11,7 @@ match($0, /\[.*\]/) {
 	# if we have encountered a new rule
 	if (section != "_Renderers") {
 		if (section in rules) {
-			print "Error Parsing config @ line", FNR ": encountered section", section, "multiple times"
-			exit -1
+			die("Error Parsing config @ line " FNR ": encountered section " section " multiple times")
 		} else {
 			rules[section] = ""
 		}
@@ -44,8 +43,7 @@ function parse_rule(ruletext, dest_array) {
 		if (l=="") {continue}
 		n = split(l, kval, "=")
 		if (n != 2) {
-			print "Error Parsing config @ line", FNR ": Bad key val", l, "n == ", n
-			exit -1
+			die("Error Parsing config @ line " FNR ": Bad key val " l " n == " n)
 		}
 		dest_array[kval[1]] = kval[2]
 	}
@@ -60,4 +58,10 @@ function dump_rules() {
 		for (k in rule_vals) 
 			print k ,"->", rule_vals[k]
 	}
+}
+
+function die(message) {
+	print message >  "/dev/fd/2"
+	HAS_DIED="true"
+	exit -1
 }
