@@ -1,11 +1,15 @@
 #!/bin/sh
-
+DEFAULT=puffin.ini
 puf_lib=PUFLIB_PATH
 proj="$1"
 
 if [ -z $proj ] ; then
-    echo ERROR, no project file provided  >&2
-    exit -1
+    if [ -e $DEFAULT ] ; then
+	proj=$DEFAULT
+    else 
+	echo ERROR, $DEFAULT not found and file not provided  >&2
+	exit -1
+    fi
 fi
 cat $proj | awk -f "${puf_lib}/config.awk" \
-    	        -f "${puf_lib}/make_config.awk"
+    	        -f "${puf_lib}/make_config.awk" > Makefile
