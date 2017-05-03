@@ -6,19 +6,18 @@
 # remove comment lines
 /^[:space:]*#/ {next}
 
-match($0, /\[([[:alnum:]_]).*\]/) {
-  section = substr($0, (RSTART + 1), (RLENGTH - 2))
-
-  # if we have encountered a new rule
-  if (section != "_Renderers") {
-	  if (section in rules) {
-		  print "Error Parsing config @ line", FNR ": encountered section", section, "multiple times"
-		exit -1
-	  } else {
-		  rules[section] = ""
-	  }
-  }
-  next
+match($0, /\[.*\]/) {
+	section = substr($0, (RSTART + 1), (RLENGTH - 2))
+	# if we have encountered a new rule
+	if (section != "_Renderers") {
+		if (section in rules) {
+			print "Error Parsing config @ line", FNR ": encountered section", section, "multiple times"
+			exit -1
+		} else {
+			rules[section] = ""
+		}
+	}
+	next
 }
 
 # if we detect a setting of a key value

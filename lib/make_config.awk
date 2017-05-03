@@ -42,8 +42,6 @@ END {
 			}
 			find_cmd = find_cmd ")"
 			print find_cmd
-			split(p_rule["src"],src_folder,"/")
-			print "DEPS_" toupper(rule) "=$(patsubst " src_folder[1] "%, build%,$(SRC_" toupper(rule)":." tmp_render "=.html))"
 		} else {
 			print "ERROR: Unrecognized rule type: " p_rule["type"]
 			exit -1
@@ -85,7 +83,7 @@ END {
 			}
 			
 		} else if (p_rule["type"] == "blogroll") {
-			print "build/" rule ": $(DEPS_" toupper(rule) ")"
+			print "build/" rule ": $(SRC_" toupper(rule) ")"
 			print "\ttouch build/" rule
 			
 		} 

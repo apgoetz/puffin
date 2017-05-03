@@ -1,10 +1,10 @@
 include config.mk
 FILES=puffin puffin-render puffin-configure
-LIBS=render.awk config.awk
+LIBS=render.awk config.awk make_config.awk
 
 all: 
 	@echo Compiling puffin executable
-	@sed "s#ZODLIB_PATH#${AWKLIB}#g" < bin/puffin.template > bin/puffin
+	@sed "s#PUFLIB_PATH#${AWKLIB}#g" < bin/puffin.template > bin/puffin
 	@chmod 755 bin/puffin
 	@echo Compiled
 
