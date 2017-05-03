@@ -10,7 +10,7 @@ match($0, /\[([[:alnum:]_]).*\]/) {
   section = substr($0, (RSTART + 1), (RLENGTH - 2))
 
   # if we have encountered a new rule
-  if (section != "RENDERERS") {
+  if (section != "_Renderers") {
 	  if (section in rules) {
 		  print "Error Parsing config @ line", FNR ": encountered section", section, "multiple times"
 		exit -1
@@ -25,7 +25,7 @@ match($0, /\[([[:alnum:]_]).*\]/) {
 /.*=.*/ {
 	
 	# special exception for renderer: we use this to store converters
-	if (section == "RENDERERS") {
+	if (section == "_Renderers") {
 		renderers = renderers $0 "\n"
 	} else { 		# we are parsing a rule
 		rules[section] = rules[section] $0 "\n"
