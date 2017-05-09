@@ -1,15 +1,28 @@
 #!/bin/sh
-DEFAULT=puffin.ini
+puffin_files=$(find . -name puffin.ini)
 puf_lib=PUFLIB_PATH
-proj="$1"
 
-if [ -z $proj ] ; then
-    if [ -e $DEFAULT ] ; then
-	proj=$DEFAULT
-    else 
-	echo ERROR, $DEFAULT not found and file not provided  >&2
-	exit -1
-    fi
-fi
-cat $proj | awk -f "${puf_lib}/config.awk" \
-    	        -f "${puf_lib}/make_config.awk" > Makefile
+command="$1"
+shift
+
+case $command in
+    "makedepend")
+	awk -f "${puf_lib}/lib.awk" \
+		-f "${puf_lib}/config.awk" \
+    	        -f "${puf_lib}/make_depend.awk" \
+		-v puf_lib=$puf_lib \
+		-- "$puf_lib/puffin.ini" $puffin_files \
+		< /dev/null #> Makefile
+    ;;
+    "render")
+	filename="$1"
+	shift
+	awk -f "${puf_lib}/lib.awk" \
+	    -v puf_lib=$puf_lib \
+	    $@ -f ${puf_lib}/render.awk -- $filename
+    ;;
+    *)
+	echo ERROR: Unknown sub command: $command
+	exit 1
+    ;;
+esac

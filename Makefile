@@ -1,6 +1,6 @@
 include config.mk
 FILES=puffin puffin-render puffin-configure
-LIBS=render.awk config.awk make_config.awk
+LIBS=render.awk config.awk make_depend.awk puffin.ini lib.awk
 
 all: 
 	@echo Compiling puffin executable
