@@ -45,6 +45,12 @@ function array2rule(array,     rule, key) {
 # returns in rules array
 function get_rules(adt, path, rules,    path_elems, n, i, key) {
 	split("", rules)
+
+	# need to make sure path include current dir in order to match names
+	if (path !~ /^\.\//) {
+		path = "./" path
+	}
+	
 	n = split(path, path_elems, "/")
 	for (i=1; i <= n; i++) {
 		key = join(path_elems, 1, i, "/")
@@ -53,14 +59,25 @@ function get_rules(adt, path, rules,    path_elems, n, i, key) {
 	}
 }
 
-# helper function to print all of the rules identified during the configuration
-function dump_rules(adt,   r, rule_vals, k) {
-	for (r in adt) {
-		print "[" r "]"
-		rule2array(adt[r],rule_vals)
-		for (k in rule_vals) 
-			print k "=" rule_vals[k]
+# checks if array is empty
+function is_empty(array,    key) {
+	for (key in array) {
+		return 0
 	}
+	return 1
+}
+
+# helper function to get all of the rules in adt as string
+function dump_rules(adt,    rule_str, r, rule_vals, k) {
+	rule_str = ""
+	for (r in adt) {
+		rule_str = rule_str "[" r "]"
+		rule2array(adt[r],rule_vals)
+		rule_str = rule_str "\n"
+		for (k in rule_vals) 
+			rule_str = rule_str  k "=" rule_vals[k] "\n"
+	}
+	return rule_str
 }
 
 # helper function, specifies we have died and prints message to stderr

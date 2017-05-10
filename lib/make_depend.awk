@@ -1,14 +1,6 @@
 # prints out makefile for an puffin project
 # needs to be run as part of config job
 
-function make_varstring(p_rule,    varstring, k) {
-	varstring = ""
-	for (k in p_rule) {
-		varstring = varstring " -v '" k "=" p_rule[k] "'"
-	}
-	return varstring
-}
-
 END {
 	if (HAS_DIED=="true") {
 		exit -1
@@ -27,18 +19,18 @@ END {
 		} else if (p_rule["action"] == "convert"){
 			n = split(rule, path_array, "/")
 			build_path = p_rule["buildDir"] join(path_array, 3, n, "/")
-			print p_rule["default_target"] ": $(patsubst " p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " rule " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
+			print p_rule["default_target"] ": $(patsubst ./" p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " rule " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
 			print build_path "/%." p_rule["dest_ext"] ": " rule "/%." p_rule["src_ext"]
 			print "\tmkdir -p $(@D)"
-			print "\tpuffin render $< " make_varstring(p_rule) " > $@"
-		} else if (p_rule["action"] == "blogroll") {
+			print "\tpuffin render $< $@"
+		} else if (p_rule["action"] == "list") {
 			n = split(rule, path_array, "/")
 			build_path = p_rule["buildDir"] "/" join(path_array, 2, n, "/")
 
 			print p_rule["default_target"] ": $(patsubst " p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
 			print build_path ": $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"] "' -and ! -name '" p_rule["ignore"] "')"
 			print "\tmkdir -p $(@D)"
-			print "\tpuffin render $@ " make_varstring(p_rule) " > $@"
+			print "\tpuffin render $@ $@"
 		}
 	}
 }

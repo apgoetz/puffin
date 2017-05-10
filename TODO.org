@@ -1,0 +1,126 @@
+* DONE Add rules for atom.xml and archive.html to website
+
+* DONE Change name from awkweb to puffin
+
+* Make puffin documentation be an puffin website
+
+* Make puffin manpages that also get converted into html using puffin as
+part of the documentation
+
+* Look into "Intermediate" targets in makefile for album targets
+
+* Figure out how to have more config files for subdirs in content
+Use case: photo albums, need to figure out how to spec a template
+can use keyvals in rule to override target title
+
+* DONE Change all reserved words to be _Capital, so RENDERERS becomes _Renderers
+
+* Consider allowing custom _Renderer rules? 
+This rule would copy jpg files
+[content._Renderers]
+jpg=cat 
+
+* if Renderer is set to false, it doesn't copy
+
+* DONE Use rule names to determine what directories to search
+with sum of all applicable renderer rules used to decide which files
+to include
+
+Default renderer is not to copy. if you want to copy something, add it
+to the renderer list
+ 
+* DONE Need way of determining if renderer outputs html or some other format,
+so we can allow other types of conversion. For example, jpegs should
+be passed through without change, but markdown needs to turn into html
+potentially, if renderer is set to cat, then don't change, but if
+anything else, do change to html?
+
+* Need wildcards for file extensions, so we can do *~=false to not pass
+turds. maybe change this so renderers are based on entire file name
+instead of just extension, so we can also use _*=false to exclude
+draft posts? But draft vs nondraft shouldn't require rerunning puffin
+
+* DONE Allow keys in rules to be used as template elements. so Title can be set
+for a rule from the rule, not from the filename
+
+* Add new keycommands for auto title and auto date, which are set for
+default for page data type to encode that the name and date come from
+filename
+
+* Add new keycommands for item template vs template for blogroll?
+
+* Abort templating if template is encountered that is not set
+
+* DONE Write better function for aborting parsing
+
+* Figure out how to configure that output goes into build directory
+
+* Finish setup for puffin binary
+
+* Add progress bar to makefile?
+
+* Figure out way to quickly switch into draft mode, although I like the
+idea above to use renderers to ignore draft files
+
+* Clean up make file rendering using helper functions
+
+* Figure out how to make more modular awk code. 
+
+* Add tests
+
+* DONE Make renderer take rule keyvals on command
+
+* For renderering binary files, need way of specifying that file should
+be included as filename in templates instead of file contents, since
+we don't want to include jpgs in templates directly
+
+* Template Language should support partials and arrays of elements
+
+* get rid of blogroll: special list targets should be defined by requests
+
+* use hierarchical rules that inherit from ones higher in hierarchy: so content/posts inherits all config from content.
+
+* Add global rule for stuff at top of file that applies to all rules
+
+* allow subdirectory ini files that only apply to the contents at that level or lower.
+
+* need better way to determine conversion extensions, perhaps by hash? 
+
+* add support for arrays in ini, by defining isarray function to check if key value is an array and converting it. consider adding hashes too
+
+* add ignore file extension command
+
+* use intermediate files to compile markdown before templating?
+
+* DONE define layouts using default paths?, used default puffin.ini in lib dir
+
+* describe how you would want a photo album rendererd in order to think
+about how to implement it. Album dir would have custom puffin.ini with
+individual rules for files. Each rule defines a key for the caption of
+the photo. Have ordering determined by photo filename. images copied without transformation, but have index.html build from templates using titles in puffin.ini
+
+* check if awk will allow arrays of arrays if you store them in an
+intermediate value. if so, we can make nice adts and have a chance of implementing toml
+foo[1]="a"
+foo[2]="b"
+foo[3]="c"
+bar["foo"]=foo
+baz=bar["foo"]
+baz[1] # should be "a".. and it doesn't...
+
+* implement pypuffin first using toml and mustache
+
+* add option to specify external lib file with more functions for templating
+
+* research limits of command line arguments
+
+* List of metadata variables passed into templater
+Title: The title of the file. Defaults to capitalized version of filename
+Date: Defaults to date modified
+Permalink: The permalink for the given file
+Content: What was rendered for this file (only for page elements), empty for lists, lazily loaded from filename
+Pages: Array of values passed into templater, default sorted by date. Stored internally as numbered indexes in array
+
+# hidden
+num_Pages: count of Pages in array
+filename = source file to get content

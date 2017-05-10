@@ -7,20 +7,32 @@ shift
 
 case $command in
     "makedepend")
+	tmpfile=$(mktemp)
 	awk -f "${puf_lib}/lib.awk" \
-		-f "${puf_lib}/config.awk" \
-    	        -f "${puf_lib}/make_depend.awk" \
-		-v puf_lib=$puf_lib \
-		-- "$puf_lib/puffin.ini" $puffin_files \
-		< /dev/null #> Makefile
-    ;;
+		     -f "${puf_lib}/config.awk" \
+    		     -f "${puf_lib}/make_depend.awk" \
+		     -v puf_lib=$puf_lib \
+		     -- "$puf_lib/puffin.ini" $puffin_files \
+		     < /dev/null > $tmpfile
+	(exit $?) && cat $tmpfile
+	rm $tmpfile
+	;;
     "render")
 	filename="$1"
 	shift
+	destfile="$1"
+	shift
+	tmpfile=$(mktemp)
 	awk -f "${puf_lib}/lib.awk" \
-	    -v puf_lib=$puf_lib \
-	    $@ -f ${puf_lib}/render.awk -- $filename
-    ;;
+		 -f "${puf_lib}/config.awk" \
+		 -f "${puf_lib}/templater.awk" \
+		 -v puf_lib=$puf_lib \
+		 -v "filename=$filename" \
+		 -f ${puf_lib}/render.awk -- "$puf_lib/puffin.ini" $puffin_files \
+		 < /dev/null  > $tmpfile
+	(exit $?) && cp $tmpfile $destfile
+	rm $tmpfile
+	;;
     *)
 	echo ERROR: Unknown sub command: $command
 	exit 1
