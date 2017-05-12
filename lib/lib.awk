@@ -30,6 +30,13 @@ function rule2array(rule,array,    lines, l, n, sep) {
 	}
 }
 
+# removes leading and trailing whitespace
+function trim(text) {
+	gsub(/^[[:blank:]]*/, "", text)
+	gsub(/[[:blank:]]*$/, "", text)
+	return text
+}
+
 # converts array to a rule string
 function array2rule(array,     rule, key) {
 	rule = ""
@@ -85,4 +92,17 @@ function die(message) {
 	print message >  "/dev/fd/2"
 	HAS_DIED="true"
 	exit -1
+}
+
+# helper function to slurp in all of the text in filename and return as string
+function slurp(filename,    text) {
+	# if file is empty, just return now
+	if ((getline < filename) <= 0)
+		return ""
+	# otherwise, parse
+	text = $0
+	while ((getline < filename) > 0)
+		text = text "\n" $0
+	close(filename)
+	return text
 }

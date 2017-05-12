@@ -124,3 +124,14 @@ Pages: Array of values passed into templater, default sorted by date. Stored int
 # hidden
 num_Pages: count of Pages in array
 filename = source file to get content
+
+* TODO Fix arrays in mustache renderer
+* TODO Fix titles
+* TODO Add frontmatter parsing using triple +++
+* TODO Add support for changing mustache tag 
+* TODO Add makefile rules so targets depend on their templates
+** TODO Add function to get list of dependant templates
+* TODO Figure out how to do working directory for templates
+right now we assume we are in the top directory
+* TODO Figure out how mustache is supposed to handle template filename extensions
+* TODO Add html escaping
