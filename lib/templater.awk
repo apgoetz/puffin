@@ -36,11 +36,13 @@ function lex_tag(text, types, tokens, count,      tag_type, token_name) {
 		token_name = "INVERT"
 	} else if (tag_type == ">") {
 		token_name = "PARTIAL"
+	} else if (tag_type == "{" || tag_type == "&") {
+		token_name = "RAWVAR"
 	} else if (length(trim(text)) == 0) {
 		die("Invalid Empty Tag")
 	} else {
 		tokens[++count] = trim(text)
-		types[count] = "VARIABLE"
+		types[count] = "VAR"
 		return count
 	}
 
@@ -97,11 +99,11 @@ function lexer(template, types, tokens,     len, count, cur_char, unparsed, pre_
 	return count
 }
 
-# token types: RAW SECTION END INVERT PARTIAL VARIABLE
+# token types: RAW SECTION END INVERT PARTIAL VAR RAWVAR
 
 # EBNF OF MUSTACHE
 
-# template = { RAW | VARIABLE | PARTIAL | block }
+# template = { RAW | VAR | RAWVAR | PARTIAL | block }
 # block = ( SECTION | INVERT ) template END .
 
 
@@ -131,7 +133,10 @@ function parse_template(rules, types, tokens, count, start, my_retval,      curs
 		if (types[i] == "RAW") {
 			curstring = curstring tokens[i]
 			i++
-		} else if (types[i] == "VARIABLE") {
+		} else if (types[i] == "VAR") {
+			curstring = curstring html_escape(parse_variable(rules, tokens[i]))
+			i++
+		} else if (types[i] == "RAWVAR") {
 			curstring = curstring parse_variable(rules, tokens[i])
 			i++
 		} else if (types[i] == "PARTIAL") {

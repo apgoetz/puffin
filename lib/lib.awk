@@ -106,3 +106,12 @@ function slurp(filename,    text) {
 	close(filename)
 	return text
 }
+# need to escape < > & " ' in our source code
+function html_escape(string) {
+	gsub(/</, "\\&lt;", string)
+	gsub(/>/, "\\&gt;", string)
+	gsub(/"/, "\\&quot;", string)
+	gsub(/'/, "\\&#39;", string)
+	gsub(/&/, "\\&amp;", string)
+	return string
+}

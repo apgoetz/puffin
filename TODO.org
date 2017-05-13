@@ -134,4 +134,7 @@ filename = source file to get content
 * TODO Figure out how to do working directory for templates
 right now we assume we are in the top directory
 * TODO Figure out how mustache is supposed to handle template filename extensions
-* TODO Add html escaping
+* DONE Add html escaping
+  CLOSED: [2017-05-13 Sat 12:54]
+* TODO change error writing to use  | "cat 1>&2"
+[[https://www.gnu.org/software/gawk/manual/html_node/Special-FD.html][Gawk Manual]]
