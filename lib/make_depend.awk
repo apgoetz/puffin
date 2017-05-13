@@ -12,8 +12,8 @@ END {
 		get_rules(adt, rule, p_rule)
 		if (p_rule["action"] == "static") {
 			# if it is a static source, add it separately, since we are just going to copy it over anyways
-			print p_rule["default_target"] ": $(patsubst %, " p_rule["buildDir"] "/%, $(shell find " rule " -type f))" 
-			print p_rule["buildDir"] "/" rule "/%: " rule "/%"
+			print p_rule["default_target"] ": $(patsubst " rule "/%, " p_rule["buildDir"] "/%, $(shell find " rule " -type f))"
+			print p_rule["buildDir"] "/%: " rule "/%"
 			print "\tmkdir -p $(@D)"
 			print "\tcp $< $@"
 		} else if (p_rule["action"] == "convert"){
