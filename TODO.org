@@ -131,10 +131,23 @@ filename = source file to get content
 * TODO Add support for changing mustache tag 
 * TODO Add makefile rules so targets depend on their templates
 ** TODO Add function to get list of dependant templates
-* TODO Figure out how to do working directory for templates
+* DONE Figure out how to do working directory for templates
+  CLOSED: [2017-05-13 Sat 16:22]
 right now we assume we are in the top directory
-* TODO Figure out how mustache is supposed to handle template filename extensions
+* DONE Figure out how mustache is supposed to handle template filename extensions
+  CLOSED: [2017-05-13 Sat 16:22]
+According to standard, don't include extension in template, but assume a specific extension.
+You can specify paths, but they need to be relative to the template that is being parsed. 
+
+Additionally, check the rules table before reading a file, so that templates can be specified in parameters
+ 
 * DONE Add html escaping
   CLOSED: [2017-05-13 Sat 12:54]
-* TODO change error writing to use  | "cat 1>&2"
+* DONE change error writing to use  | "cat 1>&2"
+  CLOSED: [2017-05-13 Sat 12:58]
 [[https://www.gnu.org/software/gawk/manual/html_node/Special-FD.html][Gawk Manual]]
+* TODO Refactor puffin so that action type is extendable
+It would be nice if we could create new actions that are local to a
+specific website. We could change the way puffin renders pages so that it is broken up by action, and then allow new actions to be defined in local awk scripts
+
+* TODO Add helper command to dump rules for a given file

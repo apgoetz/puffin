@@ -107,9 +107,9 @@ function lexer(template, types, tokens,     len, count, cur_char, unparsed, pre_
 # block = ( SECTION | INVERT ) template END .
 
 
-function parser(rules, types, tokens, count,     retval,i) {
+function parser(rules, types, tokens, count, cwd,    retval,i) {
 
-	parse_template(rules, types, tokens, count, 1, retval)
+	parse_template(rules, types, tokens, count, cwd, 1, retval)
 	if (retval["curpos"] <= count) {
 		die(sprintf("Could not parse template! Stuck at %s : %s", types[2], tokens[retval["curpos"]]))
 		return ""
@@ -126,7 +126,7 @@ function parse_variable(rules, token) {
 	}
 }
 
-function parse_template(rules, types, tokens, count, start, my_retval,      curstring, i, retval) {
+function parse_template(rules, types, tokens, count, cwd, start, my_retval,      curstring, i, retval) {
 	curstring = ""
 	i = start
 	while (i <= count) {
@@ -140,9 +140,9 @@ function parse_template(rules, types, tokens, count, start, my_retval,      curs
 			curstring = curstring parse_variable(rules, tokens[i])
 			i++
 		} else if (types[i] == "PARTIAL") {
-			curstring = curstring apply_template(rules, tokens[i])
+			curstring = curstring apply_template(rules, tokens[i], cwd)
 			i++
-		} else if (parse_block(rules, types, tokens, count, i, retval)) {
+		} else if (parse_block(rules, types, tokens, count, cwd, i, retval)) {
 			curstring = curstring retval["result"]
 			i = retval["curpos"]
 		} else {
@@ -156,13 +156,13 @@ function parse_template(rules, types, tokens, count, start, my_retval,      curs
 	return 1
 }
 
-function parse_block(rules, types, tokens, count, start, my_retval,  curstring, i, retval, start_tok, end_tok, block_value) {
+function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstring, i, retval, start_tok, end_tok, block_value) {
 	i = start
 	curstring = ""
 
 	# parse the rule
 	if ((types[i] == "SECTION" || types[i] == "INVERT") && 
-	    parse_template(rules, types, tokens, count, i+1, retval) &&
+	    parse_template(rules, types, tokens, count, cwd, i+1, retval) &&
 	    types[retval["curpos"]] == "END") {
 		start_tok = strip(tokens[i])
 		end_tok = strip(tokens[retval["curpos"]])
@@ -200,8 +200,22 @@ function parse_block(rules, types, tokens, count, start, my_retval,  curstring, 
 # applys template template using rules rules. returns rendered text
 # rules is an array
 # template is a filename
-function apply_template(rules, template,    n, i, tokens, types) {
-	template = slurp(template) # read in whole template
+# cwd is directory to search for the template, relative to the actual cwd. Defaults to "."
+function apply_template(rules, template, cwd,     n, i, tokens, types, cwd_parts) {
+	# if they didn't set a cwd, use actual cwd
+	if (cwd == "") {
+		cwd = "."
+	}
+
+	# try to find the template in the rules
+	if (template in rules) {
+		template = rules[template]
+	} else { # otherwise, look for it on the filesystem
+		n = split((cwd "/" template), cwd_parts, "/")
+		cwd = join(cwd_parts, 1, n-1, "/")
+		template = slurp(cwd "/" cwd_parts[n] ".mustache") # read in whole template
+	}
+
 	n = lexer(template, types, tokens)
-	return parser(rules, types, tokens, n)	
+	return parser(rules, types, tokens, n, cwd)	
 }
