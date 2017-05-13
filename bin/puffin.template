@@ -1,19 +1,19 @@
 #!/bin/sh
-puffin_files=$(find . -name puffin.ini)
 puf_lib=PUFLIB_PATH
 
+VARS="-v puf_lib=$puf_lib"
+LIBS="-f ${puf_lib}/lib.awk -f ${puf_lib}/templater.awk -f ${puf_lib}/config.awk"
+puffin_files="${puf_lib}/puffin.ini $(find . -name puffin.ini)"
 command="$1"
 shift
+
+
+
 
 case $command in
     "makedepend")
 	tmpfile=$(mktemp)
-	awk -f "${puf_lib}/lib.awk" \
-		     -f "${puf_lib}/config.awk" \
-    		     -f "${puf_lib}/make_depend.awk" \
-		     -v puf_lib=$puf_lib \
-		     -- "$puf_lib/puffin.ini" $puffin_files \
-		     < /dev/null > $tmpfile
+	awk $VARS $LIBS -f "${puf_lib}/make_depend.awk" -- $puffin_files < /dev/null > $tmpfile
 	(exit $?) && cat $tmpfile
 	rm $tmpfile
 	;;
@@ -23,15 +23,18 @@ case $command in
 	destfile="$1"
 	shift
 	tmpfile=$(mktemp)
-	awk -f "${puf_lib}/lib.awk" \
-		 -f "${puf_lib}/config.awk" \
-		 -f "${puf_lib}/templater.awk" \
-		 -v puf_lib=$puf_lib \
-		 -v "filename=$filename" \
-		 -f ${puf_lib}/render.awk -- "$puf_lib/puffin.ini" $puffin_files \
-		 < /dev/null  > $tmpfile
+	awk $VARS $LIBS -f "${puf_lib}/render.awk" -v "filename=$filename" -- $puffin_files < /dev/null > $tmpfile
 	(exit $?) && cp $tmpfile $destfile
 	rm $tmpfile
+	;;
+    "rules")
+	filename="$1"
+	shift
+	if [ -z $filename ] ; then
+	    echo error: you must supply a filename! 1>&2
+	    exit 1
+	fi
+	awk $VARS $LIBS -f "${puf_lib}/rules.awk" -v "filename=$filename" -- $puffin_files < /dev/null
 	;;
     *)
 	echo ERROR: Unknown sub command: $command
