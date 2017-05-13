@@ -78,7 +78,6 @@ END {
 	} else if (rules["action"] == "list") {
 		# parse list
 	} else {
-		printf("Cannot parse file %s: Unknown action '%s'", filename, rules["action"]) >  "/dev/fd/2"
-		die()
+		die(sprintf("Cannot parse file %s: Unknown action '%s'", filename, rules["action"]) )
 	}
 }

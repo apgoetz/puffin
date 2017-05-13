@@ -89,7 +89,7 @@ function dump_rules(adt,    rule_str, r, rule_vals, k) {
 
 # helper function, specifies we have died and prints message to stderr
 function die(message) {
-	print message >  "/dev/fd/2"
+	print message | "cat 1>&2"
 	HAS_DIED="true"
 	exit -1
 }
