@@ -27,10 +27,10 @@ END {
 			n = split(rule, path_array, "/")
 			build_path = p_rule["buildDir"] "/" join(path_array, 2, n, "/")
 
-			print p_rule["default_target"] ": $(patsubst " p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
+			print p_rule["default_target"] ": " build_path " $(patsubst " p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
 			print build_path ": $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"] "' -and ! -name '" p_rule["ignore"] "')"
 			print "\tmkdir -p $(@D)"
-			print "\tpuffin render $@ $@"
+			print "\tpuffin render " rule " $@"
 		}
 	}
 }

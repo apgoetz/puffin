@@ -76,7 +76,7 @@ END {
 				print
 		}
 	} else if (rules["action"] == "list") {
-		# parse list
+		die("Lists are unimplemented at this time")
 	} else {
 		die(sprintf("Cannot parse file %s: Unknown action '%s'", filename, rules["action"]) )
 	}
