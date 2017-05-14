@@ -151,3 +151,5 @@ It would be nice if we could create new actions that are local to a
 specific website. We could change the way puffin renders pages so that it is broken up by action, and then allow new actions to be defined in local awk scripts
 
 * TODO Add helper command to dump rules for a given file
+* DONE Fix permalinks
+  CLOSED: [2017-05-14 Sun 12:20]

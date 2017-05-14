@@ -115,3 +115,37 @@ function html_escape(string) {
 	gsub(/&/, "\\&amp;", string)
 	return string
 }
+
+function add_curdir(filename) {
+	if (filename ~ "^\.\/") {
+		return filename
+	} else {
+		return "./" filename
+	}
+}
+
+# chops off the content or build part of a filename
+# rules is rules to use for contentDir and buildDir
+# filename is filename str to parse
+# return filename stripped of build or content dir, does
+# not include a path character at beginning 
+function get_basepath(rules, filename,    contentDir, buildDir) {
+	contentDir = add_curdir(rules["contentDir"])
+	buildDir = add_curdir(rules["buildDir"])
+	filename = add_curdir(filename)
+
+	# pull off the content or build section of the path
+	if (index(filename, contentDir) == 1) {
+		filename = substr(filename, length(contentDir)+1)
+	} else if (index(filename, buildDir) == 1) {
+		filename = substr(filename, length(buildDir)+1)
+	}
+
+	# if the stripped of filename still has a path char at the
+	# beginning, strip that off
+	if (index(filename,"/") == 1) {
+		return substr(filename, 2)
+	} else {
+		return filename
+	}
+}

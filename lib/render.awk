@@ -17,7 +17,7 @@ function add_date(rules, filepath,     year, month, day) {
 	}
 }
 
-function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i) {
+function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i, basepath) {
 	n = split(filepath, fileparts, "/")
 	filename = fileparts[n]
 	n = split(filename, fileparts, ".")
@@ -39,12 +39,13 @@ function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i
 
 	# populate permalink
 	if (! ("Permalink" in rules)) {
-		n = split(filepath, fileparts, ".")
-		rules["Permalink"] = join(fileparts, 1, n-1, ".")
+		basepath = get_basepath(rules, filepath)
+		n = split(basepath, fileparts, ".")
+		rules["Permalink"] = "/" join(fileparts, 1, n-1, ".")
 		if (ext == rules["src_ext"]) {
-			rules["Permalink"] = rules["Permalink"] rules["dest_ext"]
+			rules["Permalink"] = rules["Permalink"] "." rules["dest_ext"]
 		} else {
-			rules["Permalink"] = rules["Permalink"] ext
+			rules["Permalink"] = rules["Permalink"] "." ext
 		}
 	}
 }
