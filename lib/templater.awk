@@ -1,23 +1,36 @@
 # template a file using something close to mustache templates
 
-# renders content for a file to a string
-function render_content(rules,     output, filename, cmd) {
+# renders content for a file to a string.
+# FIXME:
+# This function handles rendering a filename. Rendering needs to take
+# into account the (optional) converter to use, as well as any
+# (optional) frontmatter in the file. Currently, this is handled in a
+# hacky way where we count the number of lines of frontmatter and skip
+# over that many lines in the renderer. This is to deal with the fact
+# that we cannot pipe the contents of a variable into a command in awk
+# and then get the results without using gawk's coprocesses, which
+# would break compatibility with old awks. The solution is to use tail
+# to skip over the first N lines of the output using the optional tail
+# -n +N syntax, which is also is not posix compatible
+function render_content(rules,     filename, cmd) {
 	output = ""
 	filename = rules["filename"]
 
-	if("converter" in rules){
-		cmd = sprintf("%s %s", rules["converter"], filename)
-		while ((cmd | getline) > 0)
-			output = output "\n" $0
-		close(cmd)
+	if(has_frontmatter(filename)) {
+		num_to_skip = add_frontmatter(rules, filename)
+	} else {
+		num_to_skip = 0
+	}
+	
+	if("converter" in rules && rules["converter"] != ""){
+		cmd = sprintf("tail -n +%d %s | %s", num_to_skip, filename, rules["converter"])
+
 		# else, just output the file
 	} else {
-		while ((getline < filename) > 0)
-			output = output "\n" $0
+		cmd = sprintf("tail -n +%d %s", num_to_skip, filename)
 	}
-	# if we have printed out a line, we need to chomp the first newline
-	if (length(output) > 0) return substr(output,2)
-	else return output
+	
+	return slurp_cmd(cmd)
 }
 
 

@@ -125,9 +125,11 @@ Pages: Array of values passed into templater, default sorted by date. Stored int
 num_Pages: count of Pages in array
 filename = source file to get content
 
+* DONE Fix titles
+  CLOSED: [2017-05-14 Sun 14:09]
 * TODO Fix arrays in mustache renderer
-* TODO Fix titles
-* TODO Add frontmatter parsing using triple +++
+* DONE Add frontmatter parsing using triple +++
+  CLOSED: [2017-05-14 Sun 14:09]
 * TODO Add support for changing mustache tag 
 * TODO Add makefile rules so targets depend on their templates
 ** TODO Add function to get list of dependant templates
@@ -150,6 +152,7 @@ Additionally, check the rules table before reading a file, so that templates can
 It would be nice if we could create new actions that are local to a
 specific website. We could change the way puffin renders pages so that it is broken up by action, and then allow new actions to be defined in local awk scripts
 
-* TODO Add helper command to dump rules for a given file
+* DONE Add helper command to dump rules for a given file
+  CLOSED: [2017-05-14 Sun 12:25]
 * DONE Fix permalinks
   CLOSED: [2017-05-14 Sun 12:20]

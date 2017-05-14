@@ -1,14 +1,18 @@
 # render an output file based on commands in the adt
 
 # populates date if necessary
-function add_date(rules, filepath,     year, month, day) {
+function add_date(rules, filepath,     year, month, day, cmd) {
 	if (! ("Date") in rules) {
 		# need to use ls -l because this is the only POSIX way to get time modified
-		("ls -l " filepath) | getline
+		cmd = "ls -l " filepath
+		cmd | getline
+		close(cmd)
 		month = $6
 		day = $7
 		if ($8 ~ /:/) {
-			"date +%Y" | getline
+			cmd = "date +%Y"
+			cmd | getline
+			close(cmd)
 			year = $0
 		} else {
 			year = $8
@@ -75,6 +79,7 @@ END {
 		} else {
 			while ((getline < filename) > 0)
 				print
+			close(filename)
 		}
 	} else if (rules["action"] == "list") {
 		die("Lists are unimplemented at this time")

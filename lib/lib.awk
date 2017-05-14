@@ -53,10 +53,7 @@ function array2rule(array,     rule, key) {
 function get_rules(adt, path, rules,    path_elems, n, i, key) {
 	split("", rules)
 
-	# need to make sure path include current dir in order to match names
-	if (path !~ /^\.\//) {
-		path = "./" path
-	}
+	path = add_curdir(path)
 	
 	n = split(path, path_elems, "/")
 	for (i=1; i <= n; i++) {
@@ -64,6 +61,9 @@ function get_rules(adt, path, rules,    path_elems, n, i, key) {
 		if (key in adt)
 			rule2array(adt[key], rules)
 	}
+
+	# add any rules from the frontmatter
+	add_frontmatter(rules, path)
 }
 
 # checks if array is empty
@@ -95,10 +95,27 @@ function die(message) {
 }
 
 # helper function to slurp in all of the text in filename and return as string
+function slurp_cmd(cmd,    text) {
+	# if file is empty, just return now
+	if ((cmd | getline) <= 0) {
+		close(cmd)
+		return ""
+	}
+	# otherwise, parse
+	text = $0
+	while ((cmd | getline) > 0)
+		text = text "\n" $0
+	close(cmd)
+	return text
+}
+
+
 function slurp(filename,    text) {
 	# if file is empty, just return now
-	if ((getline < filename) <= 0)
+	if ((getline < filename) <= 0) {
+		close(filename)
 		return ""
+	}
 	# otherwise, parse
 	text = $0
 	while ((getline < filename) > 0)

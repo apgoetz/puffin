@@ -1,5 +1,41 @@
 # awk library to parse config file
 
+function has_frontmatter(filename) {
+	return ! system(sprintf("head -c 3 %s 2> /dev/null | grep '+++' > /dev/null 2>&1", filename)) 
+}
+
+function add_frontmatter(rules, filename,    text) {
+
+	# check to see if the file has frontmatter
+	# frontmatter has magic value +++ as first three bytes of file
+	# if it doesn't have this, we can return
+	if (! has_frontmatter(filename)) {
+		return
+	}
+
+	text = ""
+	
+	# if we are here, the file has frontmatter, so we need to parse it.
+	if ((getline < filename) <= 0 || $0 !~ /^\+\+\+[[:blank:]]*$/) {
+		die(sprintf("Invalid frontmatter in %s: %s", filename, $0))
+	}
+
+	while (1) {
+		if ((getline < filename) <= 0) {
+			die(sprintf("Unterminated +++ in frontmatter in %s", filename))
+		}
+
+		if ($0 ~ /^\+\+\+[[:blank:]]*$/) {
+			break
+		}
+		text = text "\n" $0
+	}
+	close(filename)
+	rule2array(text,rules)
+	# return number of lines in frontmatter
+	return gsub("\\n", "", text) + 3
+}
+
 # each time we see a new file, store as part of rule name
 FNR == 1 {
 	
