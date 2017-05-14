@@ -27,7 +27,7 @@ function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i
 	
 	# populate title if not set
 	if (! ("Title" in rules)) {
-		n = split(fileparts[1], words, /[^ -_]/)
+		n = split(fileparts[1], words, /[ \-_]/)
 		for (i in words) {
 			words[i] = toupper(substr(words[i], 1, 1)) substr(words[i], 2)
 		}
