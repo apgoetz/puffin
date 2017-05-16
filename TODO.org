@@ -156,3 +156,8 @@ specific website. We could change the way puffin renders pages so that it is bro
   CLOSED: [2017-05-14 Sun 12:25]
 * DONE Fix permalinks
   CLOSED: [2017-05-14 Sun 12:20]
+* DONE Properly handle dates
+  CLOSED: [2017-05-15 Mon 22:09]
+need to determine what format to accept them, and what format to render them
+* TODO Implement Lists
+depends on fixing dates

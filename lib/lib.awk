@@ -166,3 +166,37 @@ function get_basepath(rules, filename,    contentDir, buildDir) {
 		return filename
 	}
 }
+
+function parse_iso8601(string, date,    orig_str, regex_str, key_str, regex_arr, key_arr, n, i) {
+	# 	Year:
+	#    YYYY (eg 1997)
+	# Year and month:
+	#    YYYY-MM (eg 1997-07)
+	# Complete date:
+	#    YYYY-MM-DD (eg 1997-07-16)
+	# Complete date plus hours and minutes:
+	#    YYYY-MM-DDThh:mmTZD (eg 1997-07-16T19:20+01:00)
+	orig_str = string
+	regex_str = "^ *|^[0-9]{4}|^-|^[0-9]{2}|^-|^[0-9]{2}|^T|^[0-9]{2}|^:|^[0-9]{2}"
+	key_str = "x|Year|x|Month|x|Day|x|Hours|x|Minutes"
+
+	n = split(regex_str, regex_arr, "|")
+	if (split(key_str, key_arr, "|") != n) {
+		die("bad regex in parse_iso8601")
+	}
+
+	for (i = 1; i <= n; i++){
+		if (match(string,regex_arr[i])) {
+			if (key_arr[i] != "x") {
+				date[key_arr[i]] = substr(string, RSTART,RLENGTH)
+			}
+			string = substr(string, RSTART+RLENGTH)
+		} else {
+			break
+		}
+	}
+
+	if (date["Day"] == "") {
+		die(sprintf("puffin dates should at least include the day: %s", orig_str))
+	}
+}

@@ -1,8 +1,19 @@
 # render an output file based on commands in the adt
 
+function get_abmon_arr(abmon_arr,    tmp_arr, i) {
+	cmd = "locale abmon"
+	if ((cmd | getline) <= 0) {
+		die("Error calling locale function")
+	}
+	split($0,tmp_arr, ";")
+	for (i in tmp_arr) {
+		abmon_arr[tmp_arr[i]] = i
+	}
+}
+
 # populates date if necessary
-function add_date(rules, filepath,     year, month, day, cmd) {
-	if (! ("Date") in rules) {
+function add_date(rules, filepath,     year, month, day, cmd, abmon_arr, field_arr) {
+	if (! ("Date" in rules) || rules["Date"] == "") {
 		# need to use ls -l because this is the only POSIX way to get time modified
 		cmd = "ls -l " filepath
 		cmd | getline
@@ -17,8 +28,13 @@ function add_date(rules, filepath,     year, month, day, cmd) {
 		} else {
 			year = $8
 		}
-		rules["Date"] = month " " day " " year
+
+		# convert month string to number
+		get_abmon_arr(abmon_arr)
+		rules["Date"] = sprintf("%d-%02d-%02d",year,abmon_arr[month],day)
 	}
+	parse_iso8601(rules["Date"],field_arr)
+	rules["DateFields"] = array2rule(field_arr)
 }
 
 function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i, basepath) {
