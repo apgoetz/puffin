@@ -1,5 +1,34 @@
 # render an output file based on commands in the adt
 
+# helper func to sort list of items
+function sort_items(dates, items, n_elems, sort_desc,    i, j, tmp) {
+	for (i = 2; i <= n_elems; i++) {
+		j = i
+		if (!sort_desc) {
+			while (j > 1 && dates[j-1] > dates[j]) {
+				tmp = dates[j]
+				dates[j] = dates[j-1]
+				dates[j-1] = tmp
+				tmp = items[j]
+				items[j] = items[j-1]
+				items[j-1] = tmp
+				j--
+			}
+		} else {
+			while (j > 1 && dates[j-1] < dates[j]) {
+				tmp = dates[j]
+				dates[j] = dates[j-1]
+				dates[j-1] = tmp
+				tmp = items[j]
+				items[j] = items[j-1]
+				items[j-1] = tmp
+				j--
+			}
+		}
+	}
+}
+
+
 function get_abmon_arr(abmon_arr,    tmp_arr, i) {
 	cmd = "locale abmon"
 	if ((cmd | getline) <= 0) {
@@ -121,7 +150,7 @@ END {
 		find_cmd = "find " rules["src"] " -type f -and ! -name '" rules["ignore"] "'"
 
 		if (! ("sort_order" in rules)) {
-			rule["sort_order"] = "descending"
+			rules["sort_order"] = "descending"
 		}
 		
 		num_items = 0
@@ -144,10 +173,21 @@ END {
 
 			add_autovars(item_rules, item_filename)
 			num_items++
-			rules[num_items] = array2rule(item_rules)
+			item_array[num_items] = array2rule(item_rules)
+			date_array[num_items] = item_rules["Date"]
 		}
 		
 		close(find_cmd)
+		if (rules["sort_order"] == "descending") {
+			sort_desc = 1
+		} else if (rules["sort_order"] == "ascending") {
+			sort_desc = 0
+		} else {die(sprintf("Unknown sort order '%s'", rules["sort_order"]))}
+		sort_items(date_array, item_array, num_items, sort_desc)
+		
+		for (i in item_array) {
+			rules[i] = item_array[i]
+		}
 		rules["num_Items"] = num_items
 		print apply_template(rules, rules["template"])
 		

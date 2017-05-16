@@ -159,5 +159,7 @@ specific website. We could change the way puffin renders pages so that it is bro
 * DONE Properly handle dates
   CLOSED: [2017-05-15 Mon 22:09]
 need to determine what format to accept them, and what format to render them
-* TODO Implement Lists
+* DONE Implement Lists
+  CLOSED: [2017-05-16 Tue 00:59]
 depends on fixing dates
+* TODO touching an md file doesn't rebuild lists
