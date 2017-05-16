@@ -5,6 +5,7 @@ function get_abmon_arr(abmon_arr,    tmp_arr, i) {
 	if ((cmd | getline) <= 0) {
 		die("Error calling locale function")
 	}
+	close(cmd)
 	split($0,tmp_arr, ";")
 	for (i in tmp_arr) {
 		abmon_arr[tmp_arr[i]] = i
@@ -37,6 +38,17 @@ function add_date(rules, filepath,     year, month, day, cmd, abmon_arr, field_a
 	rules["DateFields"] = array2rule(field_arr)
 }
 
+function add_pubdate(rules,   cmd) {
+	if (! ("PubDate" in rules)) {
+		cmd = "date +%Y-%m-%dT%T"
+		if ((cmd | getline) <= 0) {
+			die("Could not get current time")
+		}
+		close(cmd)
+		rules["PubDate"] = $0
+	}
+}
+
 function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i, basepath) {
 	n = split(filepath, fileparts, "/")
 	filename = fileparts[n]
@@ -57,6 +69,8 @@ function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i
 	# populate date
 	add_date(rules, filepath)
 
+	add_pubdate(rules)
+	
 	# populate permalink
 	if (! ("Permalink" in rules)) {
 		basepath = get_basepath(rules, filepath)
@@ -85,7 +99,7 @@ END {
 		# if we are applying a template
 		if ("template" in rules) {
 			print apply_template(rules, rules["template"])
-			# if we are converting
+			# if we are converting FIXME, should use render_content()
 		} else if("converter" in rules){
 			cmd = sprintf("%s %s", rules["converter"], filename)
 			while ((cmd | getline) > 0)
@@ -98,7 +112,45 @@ END {
 			close(filename)
 		}
 	} else if (rules["action"] == "list") {
-		die("Lists are unimplemented at this time")
+		if (rules["src"] == "") {
+			die("must specify source files for a list action")
+		}
+		if (!("template" in rules)) {
+			die("must specify a template for a list action")
+		}
+		find_cmd = "find " rules["src"] " -type f -and ! -name '" rules["ignore"] "'"
+
+		if (! ("sort_order" in rules)) {
+			rule["sort_order"] = "descending"
+		}
+		
+		num_items = 0
+		# need to get the rules for each possible file in the list
+		while ((find_cmd | getline) > 0) {
+			item_filename = $0
+			get_rules(adt, $0, item_rules)
+
+			if (item_rules["action"] != "convert") {
+				die("list elements can only have the convert action")
+			}
+
+			n = split(item_filename, fileparts, ".")
+			ext = fileparts[n]
+
+			# if the source file has the wrong extension for its converter, skip it.
+			if (item_rules["src_ext"] != "" && ext != item_rules["src_ext"]) {
+				continue
+			}
+
+			add_autovars(item_rules, item_filename)
+			num_items++
+			rules[num_items] = array2rule(item_rules)
+		}
+		
+		close(find_cmd)
+		rules["num_Items"] = num_items
+		print apply_template(rules, rules["template"])
+		
 	} else {
 		die(sprintf("Cannot parse file %s: Unknown action '%s'", filename, rules["action"]) )
 	}

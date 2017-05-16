@@ -13,6 +13,11 @@
 # to skip over the first N lines of the output using the optional tail
 # -n +N syntax, which is also is not posix compatible
 function render_content(rules,     filename, cmd) {
+
+	if (rules["action"] != "convert") {
+		die("Content only valid if action is convert: " rules["filename"])
+	}
+	
 	output = ""
 	filename = rules["filename"]
 
@@ -169,7 +174,7 @@ function parse_template(rules, types, tokens, count, cwd, start, my_retval,     
 	return 1
 }
 
-function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstring, i, retval, start_tok, end_tok, block_value) {
+function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstring, i, retval, start_tok, end_tok, block_value, j, item_rules, limit) {
 	i = start
 	curstring = ""
 
@@ -177,8 +182,8 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 	if ((types[i] == "SECTION" || types[i] == "INVERT") && 
 	    parse_template(rules, types, tokens, count, cwd, i+1, retval) &&
 	    types[retval["curpos"]] == "END") {
-		start_tok = strip(tokens[i])
-		end_tok = strip(tokens[retval["curpos"]])
+		start_tok = trim(tokens[i])
+		end_tok = trim(tokens[retval["curpos"]])
 
 		# if block doesn't match, parse error
 		if (start_tok != end_tok) {
@@ -188,7 +193,6 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 		# we are here, block is good, so we can get ready to exit
 		my_retval["curpos"] = retval["curpos"] + 1
 		block_value = parse_variable(rules, start_tok)
-
 		# FIXME: should be possible to define empty variables
 		if (types[start] == "INVERT") {
 			if (block_value == "")
@@ -196,10 +200,26 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 			else
 				my_retval["result"] = ""
 		} else {	# handle regular section
-			if (block_value == "") {
-				my_retval["result"] = ""
-			} else if (block_value == "Pages") {# special magic variable for now :(
+			if (trim(start_tok) == "Items") {# special magic variable for now :(
+
+				if (rules["action"] != "list") die("Items section only defined for list actions")
+				
+				if (rules["limit"] != "" && rules["limit"] < rules["num_Items"]) {
+					limit = rules["limit"]
+				} else {
+					limit = rules["num_Items"]
+				}
+
+				for (j=1; j <= limit; j++) {
+					split("", item_rules)
+					rule2array(rules[j], item_rules)
+					if (!parse_template(item_rules, types, tokens, count, cwd, i+1, retval)) die("Error Parsing Item")
+					my_retval["result"] = my_retval["result"] retval["result"] 
+				}
+					
 				# FIXME
+			} else if (block_value == "") {
+				my_retval["result"] = ""
 			} else { # treat as boolean for now
 				my_retval["result"] = retval["result"]	
 			}

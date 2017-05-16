@@ -119,7 +119,7 @@ Title: The title of the file. Defaults to capitalized version of filename
 Date: Defaults to date modified
 Permalink: The permalink for the given file
 Content: What was rendered for this file (only for page elements), empty for lists, lazily loaded from filename
-Pages: Array of values passed into templater, default sorted by date. Stored internally as numbered indexes in array
+Items: Array of values passed into templater, default sorted by date. Stored internally as numbered indexes in array
 
 # hidden
 num_Pages: count of Pages in array
