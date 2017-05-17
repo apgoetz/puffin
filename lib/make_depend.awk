@@ -10,25 +10,25 @@ END {
 	
 	for (rule in adt) {
 		get_rules(adt, rule, p_rule)
-		if (p_rule["action"] == "static") {
+		if (ini_str(p_rule, "action") == "static") {
 			# if it is a static source, add it separately, since we are just going to copy it over anyways
-			print p_rule["default_target"] ": $(patsubst " rule "/%, " p_rule["buildDir"] "/%, $(shell find " rule " -type f))"
-			print p_rule["buildDir"] "/%: " rule "/%"
+			print ini_str(p_rule, "default_target") ": $(patsubst " rule "/%, " ini_str(p_rule, "buildDir") "/%, $(shell find " rule " -type f))"
+			print ini_str(p_rule, "buildDir") "/%: " rule "/%"
 			print "\tmkdir -p $(@D)"
 			print "\tcp $< $@"
-		} else if (p_rule["action"] == "convert"){
+		} else if (ini_str(p_rule, "action") == "convert"){
 			n = split(rule, path_array, "/")
-			build_path = p_rule["buildDir"] join(path_array, 3, n, "/")
-			print p_rule["default_target"] ": $(patsubst ./" p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " rule " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
-			print build_path "/%." p_rule["dest_ext"] ": " rule "/%." p_rule["src_ext"]
+			build_path = ini_str(p_rule, "buildDir") join(path_array, 3, n, "/")
+			print ini_str(p_rule, "default_target") ": $(patsubst ./" ini_str(p_rule, "contentDir") "/%."ini_str(p_rule, "src_ext")", " ini_str(p_rule, "buildDir") "/%." ini_str(p_rule, "dest_ext") ", $(shell find " rule " -name  '*." ini_str(p_rule, "src_ext")"' -and ! -name '" ini_str(p_rule, "ignore") "'))"
+			print build_path "/%." ini_str(p_rule, "dest_ext") ": " rule "/%." ini_str(p_rule, "src_ext")
 			print "\tmkdir -p $(@D)"
 			print "\tpuffin render $< $@"
-		} else if (p_rule["action"] == "list") {
+		} else if (ini_str(p_rule, "action") == "list") {
 			n = split(rule, path_array, "/")
-			build_path = p_rule["buildDir"] "/" join(path_array, 2, n, "/")
+			build_path = ini_str(p_rule, "buildDir") "/" join(path_array, 2, n, "/")
 
-			print p_rule["default_target"] ": " build_path " $(patsubst " p_rule["contentDir"] "/%."p_rule["src_ext"]", " p_rule["buildDir"] "/%." p_rule["dest_ext"] ", $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"]"' -and ! -name '" p_rule["ignore"] "'))"
-			print build_path ": $(shell find " p_rule["src"] " -name  '*." p_rule["src_ext"] "' -and ! -name '" p_rule["ignore"] "')"
+			print ini_str(p_rule, "default_target") ": " build_path " $(patsubst " ini_str(p_rule, "contentDir") "/%."ini_str(p_rule, "src_ext")", " ini_str(p_rule, "buildDir") "/%." ini_str(p_rule, "dest_ext") ", $(shell find " ini_str(p_rule, "src") " -name  '*." ini_str(p_rule, "src_ext")"' -and ! -name '" ini_str(p_rule, "ignore") "'))"
+			print build_path ": $(shell find " ini_str(p_rule, "src") " -name  '*." ini_str(p_rule, "src_ext") "' -and ! -name '" ini_str(p_rule, "ignore") "')"
 			print "\tmkdir -p $(@D)"
 			print "\tpuffin render " rule " $@"
 		}

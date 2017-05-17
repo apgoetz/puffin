@@ -14,12 +14,12 @@
 # -n +N syntax, which is also is not posix compatible
 function render_content(rules,     filename, cmd) {
 
-	if (rules["action"] != "convert") {
-		die("Content only valid if action is convert: " rules["filename"])
+	if (ini_str(rules,"action") != "convert") {
+		die("Content only valid if action is convert: " ini_str(rules,"filename"))
 	}
 	
 	output = ""
-	filename = rules["filename"]
+	filename = ini_str(rules,"filename")
 
 	if(has_frontmatter(filename)) {
 		num_to_skip = add_frontmatter(rules, filename)
@@ -27,8 +27,8 @@ function render_content(rules,     filename, cmd) {
 		num_to_skip = 0
 	}
 	
-	if("converter" in rules && rules["converter"] != ""){
-		cmd = sprintf("tail -n +%d %s | %s", num_to_skip, filename, rules["converter"])
+	if("converter" in rules && ini_str(rules,"converter") != ""){
+		cmd = sprintf("tail -n +%d %s | %s", num_to_skip, filename, ini_str(rules,"converter"))
 
 		# else, just output the file
 	} else {
@@ -128,6 +128,7 @@ function lexer(template, types, tokens,     len, count, cur_char, unparsed, pre_
 function parser(rules, types, tokens, count, cwd,    retval,i) {
 
 	parse_template(rules, types, tokens, count, cwd, 1, retval)
+	
 	if (retval["curpos"] <= count) {
 		die(sprintf("Could not parse template! Stuck at %s : %s", types[2], tokens[retval["curpos"]]))
 		return ""
@@ -136,11 +137,25 @@ function parser(rules, types, tokens, count, cwd,    retval,i) {
 	}
 }
 
-function parse_variable(rules, token) {
-	if (token == "Content" && rules["action"] != "list") {
+function parse_variable(rules, token,     n,sep) {
+	if (token == "Content" && ini_str(rules,"action") != "list") {
 		return render_content(rules)
 	} else {
-		return rules[token]
+		# see if this has a dot in it
+		n = split(token, sep, ".")
+		if (n == 1) {
+			if (!(token in rules)) {
+				return ""
+			} else if (ini_type(rules[token]) == "STR") {
+				return ini_str(rules,token)
+			} else if (ini_type(rules[token]) == "HASH") {
+				return "HASH"
+			} else {
+				die("Unknown var type in hash")
+			}
+		} else {
+			die(". not allowed in variable at this time")
+		}
 	}
 }
 
@@ -193,6 +208,7 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 		# we are here, block is good, so we can get ready to exit
 		my_retval["curpos"] = retval["curpos"] + 1
 		block_value = parse_variable(rules, start_tok)
+		
 		# FIXME: should be possible to define empty variables
 		if (types[start] == "INVERT") {
 			if (block_value == "")
@@ -202,26 +218,50 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 		} else {	# handle regular section
 			if (trim(start_tok) == "Items") {# special magic variable for now :(
 
-				if (rules["action"] != "list") die("Items section only defined for list actions")
+				if (ini_str(rules,"action") != "list") die("Items section only defined for list actions")
 				
-				if (rules["limit"] != "" && rules["limit"] < rules["num_Items"]) {
-					limit = rules["limit"]
+				if (ini_str(rules,"limit") != "" && ini_str(rules,"limit") < ini_str(rules,"num_Items")) {
+					limit = ini_str(rules,"limit")
 				} else {
-					limit = rules["num_Items"]
+					limit = ini_str(rules, "num_Items")
 				}
 
 				for (j=1; j <= limit; j++) {
 					split("", item_rules)
-					rule2array(rules[j], item_rules)
+
+					ini_parsefrag(rules[j], item_rules)
 					if (!parse_template(item_rules, types, tokens, count, cwd, i+1, retval)) die("Error Parsing Item")
 					my_retval["result"] = my_retval["result"] retval["result"] 
 				}
-					
-				# FIXME
+				
+				# if block value is empty, skip over this block
 			} else if (block_value == "") {
 				my_retval["result"] = ""
-			} else { # treat as boolean for now
-				my_retval["result"] = retval["result"]	
+			} else { # we return value of variable
+				# if the value is in the rules and is a str type, we don't need to reparse the section in the
+				# new context, so the value we got from before is still valid
+				if (start_tok == "Content") {
+					my_retval["result"] = retval["result"]
+				} else if (ini_type(rules[start_tok]) == "STR") {
+					my_retval["result"] = retval["result"]
+				}
+				# on the other hand, if the variable
+				# type from before was a hash, we need
+				# to rerun the template in the new
+				# context in order to see if any other values bubble up
+				else if (ini_type(rules[start_tok]) == "HASH") {
+					
+					# we can move into a hash
+					split("",item_rules) # clear tmp rule ini
+					acopy(item_rules, rules) # copy over our current context
+					ini_hash(item_rules, start_tok, item_rules) # add the rules from the hash key we are entering
+					if (!parse_template(item_rules, types, tokens, count, cwd, i+1, retval)) die("Error Parsing Variable")
+					my_retval["result"] = retval["result"] 
+					
+				} else {
+					die("Unimplemented")
+				}
+
 			}
 		}
 		return 1
@@ -250,5 +290,5 @@ function apply_template(rules, template, cwd,     n, i, tokens, types, cwd_parts
 	}
 
 	n = lexer(template, types, tokens)
-	return parser(rules, types, tokens, n, cwd)	
+	return parser(rules, types, tokens, n, cwd)
 }

@@ -7,5 +7,6 @@ END {
 	}
 
 	get_rules(adt, filename, rules)
-	print array2rule(rules)
+	add_autovars(rules, filename)
+	print ini_print(rules)
 }

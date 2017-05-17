@@ -16,20 +16,6 @@ function join(array, start, stop, sep,    result, i)
     return result
 }
 
-# converts string containing rules into dict
-# note, does not clear out dest array
-function rule2array(rule,array,    lines, l, n, sep) {
-	split(rule, lines, "\n")
-
-	for (l in lines) {
-		l = lines[l]
-		n = split(l,sep,"=")
-		if(n == 2) {
-			array[sep[1]]=sep[2]
-		}
-	}
-}
-
 # removes leading and trailing whitespace
 function trim(text) {
 	gsub(/^[[:blank:]]*/, "", text)
@@ -37,34 +23,7 @@ function trim(text) {
 	return text
 }
 
-# converts array to a rule string
-function array2rule(array,     rule, key) {
-	rule = ""
-	for (key in array) {
-		rule = rule key "=" array[key] "\n"
-	}
-	return rule
-}
 
-# gets the rules that apply to a specific path
-# this searches the adt for all rules that apply to this block,
-# with more specific rules overriding more general ones
-# returns in rules array
-function get_rules(adt, path, rules,    path_elems, n, i, key) {
-	split("", rules)
-
-	path = add_curdir(path)
-	
-	n = split(path, path_elems, "/")
-	for (i=1; i <= n; i++) {
-		key = join(path_elems, 1, i, "/")
-		if (key in adt)
-			rule2array(adt[key], rules)
-	}
-
-	# add any rules from the frontmatter
-	add_frontmatter(rules, path)
-}
 
 # checks if array is empty
 function is_empty(array,    key) {
@@ -74,18 +33,6 @@ function is_empty(array,    key) {
 	return 1
 }
 
-# helper function to get all of the rules in adt as string
-function dump_rules(adt,    rule_str, r, rule_vals, k) {
-	rule_str = ""
-	for (r in adt) {
-		rule_str = rule_str "[" r "]"
-		rule2array(adt[r],rule_vals)
-		rule_str = rule_str "\n"
-		for (k in rule_vals) 
-			rule_str = rule_str  k "=" rule_vals[k] "\n"
-	}
-	return rule_str
-}
 
 # helper function, specifies we have died and prints message to stderr
 function die(message) {
@@ -147,8 +94,8 @@ function add_curdir(filename) {
 # return filename stripped of build or content dir, does
 # not include a path character at beginning 
 function get_basepath(rules, filename,    contentDir, buildDir) {
-	contentDir = add_curdir(rules["contentDir"])
-	buildDir = add_curdir(rules["buildDir"])
+	contentDir = add_curdir(ini_str(rules,"contentDir"))
+	buildDir = add_curdir(ini_str(rules,"buildDir"))
 	filename = add_curdir(filename)
 
 	# pull off the content or build section of the path
@@ -201,3 +148,93 @@ function parse_iso8601(string, date,    orig_str, regex_str, key_str, regex_arr,
 	}
 }
 
+function get_abmon_arr(abmon_arr,    tmp_arr, i) {
+	cmd = "locale abmon"
+	if ((cmd | getline) <= 0) {
+		die("Error calling locale function")
+	}
+	close(cmd)
+	split($0,tmp_arr, ";")
+	for (i in tmp_arr) {
+		abmon_arr[tmp_arr[i]] = i
+	}
+}
+
+# populates date if necessary
+function add_date(rules, filepath,     year, month, day, cmd, abmon_arr, field_arr) {
+	if (! ("Date" in rules) || ini_str(rules,"Date") == "") {
+		# need to use ls -l because this is the only POSIX way to get time modified
+		cmd = "ls -l " filepath
+		cmd | getline
+		close(cmd)
+		month = $6
+		day = $7
+		if ($8 ~ /:/) {
+			cmd = "date +%Y"
+			cmd | getline
+			close(cmd)
+			year = $0
+		} else {
+			year = $8
+		}
+
+		# convert month string to number
+		get_abmon_arr(abmon_arr)
+		ini_add_str(rules,"Date", sprintf("%d-%02d-%02d",year,abmon_arr[month],day))
+	}
+
+	parse_iso8601(ini_str(rules,"Date"),field_arr)
+	rules["DateFields"] = ini_arr2frag(field_arr)
+}
+
+function add_pubdate(rules,   cmd) {
+	if (! ("PubDate" in rules)) {
+		cmd = "date +%Y-%m-%dT%T"
+		if ((cmd | getline) <= 0) {
+			die("Could not get current time")
+		}
+		close(cmd)
+		ini_add_str(rules,"PubDate", $0)
+	}
+}
+
+function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i, basepath) {
+	n = split(filepath, fileparts, "/")
+	filename = fileparts[n]
+	n = split(filename, fileparts, ".")
+	ext = fileparts[n] # populate extension
+
+	ini_add_str(rules,"filename", filepath)
+	
+	# populate title if not set
+	if (! ("Title" in rules)) {
+		n = split(fileparts[1], words, /[ \-_]/)
+		for (i in words) {
+			words[i] = toupper(substr(words[i], 1, 1)) substr(words[i], 2)
+		}
+		ini_add_str(rules,"Title", join(words, 1, n, " "))
+	}
+
+	# populate date
+	add_date(rules, filepath)
+
+	add_pubdate(rules)
+	
+	# populate permalink
+	if (! ("Permalink" in rules)) {
+		basepath = get_basepath(rules, filepath)
+		n = split(basepath, fileparts, ".")
+		ini_add_str(rules,"Permalink", "/" join(fileparts, 1, n-1, "."))
+		if (ext == ini_str(rules,"src_ext")) {
+			ini_add_str(rules,"Permalink", ini_str(rules,"Permalink") "." ini_str(rules,"dest_ext"))
+		} else {
+			ini_add_str(rules,"Permalink", ini_str(rules,"Permalink") "." ext)
+		}
+	}
+}
+
+# copy all elements of array src to array dest
+function acopy(dest, src,     i) {
+	for (i in src)
+		dest[i] = src[i]
+}
