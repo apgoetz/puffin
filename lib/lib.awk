@@ -109,6 +109,8 @@ function get_basepath(rules, filename,    contentDir, buildDir) {
 	# beginning, strip that off
 	if (index(filename,"/") == 1) {
 		return substr(filename, 2)
+	} else if (index(filename,"./") == 1) {
+		return substr(filename, 3)
 	} else {
 		return filename
 	}

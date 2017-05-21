@@ -162,4 +162,11 @@ need to determine what format to accept them, and what format to render them
 * DONE Implement Lists
   CLOSED: [2017-05-16 Tue 00:59]
 depends on fixing dates
-* TODO touching an md file doesn't rebuild lists
+* DONE touching an md file doesn't rebuild lists
+  CLOSED: [2017-05-21 Sun 16:07]
+* DONE Make filename output depend on template name
+  CLOSED: [2017-05-21 Sun 16:07]
+use template extension to determine what file turns in to
+* TODO Make template separate directory, like hugo
+* TODO Add Sitemap
+* TODO Add arrays to ini parser

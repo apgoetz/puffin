@@ -159,6 +159,14 @@ function parse_variable(rules, token,     n,sep) {
 	}
 }
 
+function get_partial_name(partial, cwd) {
+	cmd = sprintf("ls %s/%s*", cwd, partial)
+
+	if ((cmd | getline) <= 0) return ""
+	close(cmd)
+	return $0
+}
+
 function parse_template(rules, types, tokens, count, cwd, start, my_retval,      curstring, i, retval) {
 	curstring = ""
 	i = start
@@ -274,7 +282,7 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 # rules is an array
 # template is a filename
 # cwd is directory to search for the template, relative to the actual cwd. Defaults to "."
-function apply_template(rules, template, cwd,     n, i, tokens, types, cwd_parts) {
+function apply_template(rules, template, cwd,     n, i, tokens, types, cwd_parts, name) {
 	# if they didn't set a cwd, use actual cwd
 	if (cwd == "") {
 		cwd = "."
@@ -284,9 +292,14 @@ function apply_template(rules, template, cwd,     n, i, tokens, types, cwd_parts
 	if (template in rules) {
 		template = rules[template]
 	} else { # otherwise, look for it on the filesystem
+		name = get_partial_name(template, cwd)
+		if (name == "") {
+			return ""
+		}
+		
 		n = split((cwd "/" template), cwd_parts, "/")
 		cwd = join(cwd_parts, 1, n-1, "/")
-		template = slurp(cwd "/" cwd_parts[n] ".mustache") # read in whole template
+		template = slurp(name) # read in whole template
 	}
 
 	n = lexer(template, types, tokens)

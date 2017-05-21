@@ -37,7 +37,9 @@ END {
 	}
 	
 	# get the rules that apply to the file we are parsing
-	get_rules(adt, filename, rules)
+	if (!get_rules(adt, filename, rules)) {
+		get_rules(adt, filename, rules)
+	}
 
 
 	if (ini_str(rules,"action") == "convert") {
