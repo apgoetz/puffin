@@ -200,7 +200,7 @@ function add_pubdate(rules,   cmd) {
 	}
 }
 
-function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i, basepath) {
+function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i, basepath, template_parts) {
 	n = split(filepath, fileparts, "/")
 	filename = fileparts[n]
 	n = split(filename, fileparts, ".")
@@ -225,10 +225,11 @@ function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i
 	# populate permalink
 	if (! ("Permalink" in rules)) {
 		basepath = get_basepath(rules, filepath)
-		n = split(basepath, fileparts, ".")
+	n = split(basepath, fileparts, ".")
 		ini_add_str(rules,"Permalink", "/" join(fileparts, 1, n-1, "."))
-		if (ext == ini_str(rules,"src_ext")) {
-			ini_add_str(rules,"Permalink", ini_str(rules,"Permalink") "." ini_str(rules,"dest_ext"))
+		if (ini_str(rules, "template") != "") {
+			n = split(ini_str(rules, "template"), template_parts, ".")
+			ini_add_str(rules,"Permalink", ini_str(rules,"Permalink") "." template_parts[n])
 		} else {
 			ini_add_str(rules,"Permalink", ini_str(rules,"Permalink") "." ext)
 		}

@@ -76,6 +76,7 @@ END {
 		num_items = 0
 		# need to get the rules for each possible file in the list
 		while ((find_cmd | getline) > 0) {
+			split("", item_rules)
 			item_filename = $0
 			get_rules(adt, $0, item_rules)
 
@@ -109,6 +110,7 @@ END {
 			rules[i] = item_array[i]
 		}
 		ini_add_str(rules,"num_Items", num_items)
+
 		print apply_template(rules, ini_str(rules,"template"))
 		
 	} else {
