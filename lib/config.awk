@@ -119,6 +119,11 @@ function ini_val(frag,   i) {
 	return substr(frag, i+1)
 }
 
+# gets value of key as number, stored in array as string
+function ini_num(ini, key) {
+	return ini_str(ini, key)+0
+}
+
 # gets value of a key, must be a str
 function ini_str(ini, key) {
 	if (ini[key] == "")

@@ -81,7 +81,7 @@ function html_escape(string) {
 }
 
 function add_curdir(filename) {
-	if (filename ~ "^\.\/") {
+	if (filename ~ "^\\.\\/") {
 		return filename
 	} else {
 		return "./" filename

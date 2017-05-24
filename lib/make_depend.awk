@@ -25,17 +25,17 @@ END {
 		      
 			n = split(ini_str(p_rule, "template"), template_parts, ".")
 			src_ext = ini_str(p_rule, "src_ext")
-			extension = template_parts[n]
+			ext = template_parts[n]
 
 			# we are making a rule for a single file
-			if (rule ~ ("\." src_ext "$")) {
+			if (rule ~ ("\\." src_ext "$")) {
 				print ini_str(p_rule, "default_target") ": " rule
-				sub(src_ext "$", extension, build_path)
+				sub(src_ext "$", ext, build_path)
 				print build_path ": " rule
 			} else { # assume we are making a rule for a directory
 				
-				print ini_str(p_rule, "default_target") ": $(patsubst ./" ini_str(p_rule, "contentDir") "/%."ini_str(p_rule, "src_ext")", " ini_str(p_rule, "buildDir") "/%." extension ", $(shell find " rule " -name  '*." ini_str(p_rule, "src_ext")"' -and ! -name '" ini_str(p_rule, "ignore") "'))"
-				print build_path "/%." extension ": " rule "/%." ini_str(p_rule, "src_ext")
+				print ini_str(p_rule, "default_target") ": $(patsubst ./" ini_str(p_rule, "contentDir") "/%."ini_str(p_rule, "src_ext")", " ini_str(p_rule, "buildDir") "/%." ext ", $(shell find " rule " -name  '*." ini_str(p_rule, "src_ext")"' -and ! -name '" ini_str(p_rule, "ignore") "'))"
+				print build_path "/%." ext ": " rule "/%." ini_str(p_rule, "src_ext")
 			}
 			
 			print "\tmkdir -p $(@D)"

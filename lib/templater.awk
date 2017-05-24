@@ -229,15 +229,15 @@ function parse_block(rules, types, tokens, count, cwd, start, my_retval,  curstr
 				my_retval["result"] = ""
 				if (ini_str(rules,"action") != "list") die("Items section only defined for list actions")
 				
-				if (ini_str(rules,"limit") != "" && ini_str(rules,"limit") < ini_str(rules,"num_Items")) {
-					limit = ini_str(rules,"limit")
+				if (ini_str(rules,"limit") != "" && ini_num(rules,"limit") < ini_num(rules,"num_Items")) {
+					limit = ini_num(rules,"limit")
 				} else {
-					limit = ini_str(rules, "num_Items")
+					limit = ini_num(rules, "num_Items")
 				}
 
-				for (j=1; j <= (limit+0); j++) {
+				for (j=1; j <= limit; j++) {
 					split("", item_rules)
-
+					
 					ini_parsefrag(rules[j], item_rules)
 					if (!parse_template(item_rules, types, tokens, count, cwd, i+1, retval)) die("Error Parsing Item")
 
