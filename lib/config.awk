@@ -1,5 +1,7 @@
 # awk library to parse config file
 
+
+BEGIN {INI_SEP = ":"}
 # converts string containing rules into dict
 # note, does not clear out dest array
 # string must be an ini file fragment
@@ -36,14 +38,14 @@ function ini_parsefrag(frag, ini, curkey,   type,l, lines, n, sep, payload, key)
 
 # converts array to a rule string. NOT an ini. 
 function ini_arr2frag(array,     frag, key, val, line) {
-	frag = "HASH" SUBSEP
+	frag = "HASH" INI_SEP
 	for (key in array) {
 		# escape newlines using @ and \n values
 		val = array[key]
 		gsub("@", "@@", val)
 		gsub("\n", "@n", val)
 		
-		line = key "=" "STR" SUBSEP val "\n"
+		line = key "=" "STR" INI_SEP val "\n"
 		frag = frag line
 	}
 	# if we have added at least one line, we need to chop off the end
@@ -56,7 +58,7 @@ function ini_arr2frag(array,     frag, key, val, line) {
 
 # converts ini to a rule string. NOT a raw array
 function ini_ini2frag(array,     frag, key, val, line) {
-	frag = "HASH" SUBSEP
+	frag = "HASH" INI_SEP
 	for (key in array) {
 		# escape newlines using @ and \n values
 		val = array[key]
@@ -103,19 +105,19 @@ function ini_print(ini, name,   key, hashes, tmp_ini, retval) {
 	return retval
 }
 
-# format of a fragment: TYPE SUBSEP VALUE
+# format of a fragment: TYPE INI_SEP VALUE
 
 # returns the type of a fragment
 function ini_type(frag,   i) {
-	i = index(frag, SUBSEP)
-	if (i == 0) die(sprintf("Expected SUBSEP in fragment: %s", frag))
+	i = index(frag, INI_SEP)
+	if (i == 0) die(sprintf("Expected INI_SEP in fragment: %s", frag))
 	return substr(frag, 1, i-1)
 }
 
 # returns the value of a fragment
 function ini_val(frag,   i) {
-	i = index(frag, SUBSEP)
-	if (i == 0) die("Expected SUBSEP in fragment")
+	i = index(frag, INI_SEP)
+	if (i == 0) die("Expected INI_SEP in fragment")
 	return substr(frag, i+1)
 }
 
@@ -147,7 +149,7 @@ function ini_hash(ini, key, dest) {
 
 function ini_add_str(ini, key, val) {
 	if (key == "") die("cannot have empty key")
-	ini[key] = "STR" SUBSEP val
+	ini[key] = "STR" INI_SEP val
 }
 
 # gets the rules that apply to a specific path
@@ -244,7 +246,7 @@ match($0, /\[.*\]/) {
 	key = substr($0, 1, n-1)
 	val = substr($0, n+1)
 	if (cur_rule_str in adt)
-		adt[cur_rule_str] = adt[cur_rule_str] "\n" key "=STR" SUBSEP val
+		adt[cur_rule_str] = adt[cur_rule_str] "\n" key "=STR" INI_SEP val
 	else
-		adt[cur_rule_str] = "HASH" SUBSEP key"=STR" SUBSEP val
+		adt[cur_rule_str] = "HASH" INI_SEP key"=STR" INI_SEP val
 }
