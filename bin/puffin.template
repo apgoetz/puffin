@@ -1,19 +1,26 @@
 #!/bin/sh
 puf_lib=PUFLIB_PATH
-
 VARS="-v puf_lib=$puf_lib"
 LIBS="-f ${puf_lib}/lib.awk -f ${puf_lib}/templater.awk -f ${puf_lib}/config.awk"
 puffin_files="${puf_lib}/puffin.ini $(find . -name puffin.ini)"
 command="$1"
 shift
 
+# set default awk
+if [ -z "${AWK}" ]; then 
+    AWK='awk'
+fi
 
+# set default args to awk
+if [ -z "${AWK_ARGS}" ]; then 
+    AWK_ARGS=''
+fi
 
 
 case $command in
     "makedepend")
 	tmpfile=$(mktemp)
-	awk $VARS $LIBS -f "${puf_lib}/make_depend.awk" -- $puffin_files < /dev/null > $tmpfile
+	${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/make_depend.awk" -- $puffin_files < /dev/null > $tmpfile
 	(exit $?) && cat $tmpfile
 	rm $tmpfile
 	;;
@@ -23,7 +30,7 @@ case $command in
 	destfile="$1"
 	shift
 	tmpfile=$(mktemp)
-	awk $VARS $LIBS -f "${puf_lib}/render.awk" -v "filename=$filename" -- $puffin_files < /dev/null > $tmpfile
+	${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/render.awk" -v "filename=$filename" -- $puffin_files < /dev/null  > $tmpfile
 	(exit $?) && cp $tmpfile $destfile
 	rm $tmpfile
 	;;
@@ -34,7 +41,7 @@ case $command in
 	    echo error: you must supply a filename! 1>&2
 	    exit 1
 	fi
-	awk $VARS $LIBS -f "${puf_lib}/rules.awk" -v "filename=$filename" -- $puffin_files < /dev/null
+	echo ${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/rules.awk" -v "filename=$filename" -- $puffin_files < /dev/null
 	;;
     *)
 	echo ERROR: Unknown sub command: $command
