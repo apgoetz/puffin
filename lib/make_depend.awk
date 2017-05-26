@@ -23,9 +23,15 @@ END {
 				build_path = build_path "/" basepath
 			}
 		      
-			n = split(ini_str(p_rule, "template"), template_parts, ".")
+			
 			src_ext = ini_str(p_rule, "src_ext")
-			ext = template_parts[n]
+			if (template in p_rule || ini_str(p_rule, "template") != "") {
+				n = split(ini_str(p_rule, "template"), template_parts, ".")
+				ext = template_parts[n]
+			} else {
+				ext = src_ext
+			}
+			
 
 			# we are making a rule for a single file
 			if (rule ~ ("\\." src_ext "$")) {

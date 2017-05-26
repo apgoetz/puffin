@@ -46,19 +46,15 @@ END {
 		# populate appropriate autovars
 		add_autovars(rules, filename)
 		# if we are applying a template
-		if ("template" in rules) {
+		if ("template" in rules && ini_str(rules, "template") != "") {
 			print apply_template(rules, ini_str(rules,"template"))
 			# if we are converting FIXME, should use render_content()
 		} else if("converter" in rules){
 			cmd = sprintf("%s %s", ini_str(rules,"converter"), filename)
-			while ((cmd | getline) > 0)
-				print
-			close(cmd)
+			system(cmd)
 			# else, just output the file
 		} else {
-			while ((getline < filename) > 0)
-				print
-			close(filename)
+			system(sprintf("cat %s", filename))
 		}
 	} else if (ini_str(rules,"action") == "list") {
 		if (ini_str(rules,"src") == "") {

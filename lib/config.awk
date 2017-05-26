@@ -195,7 +195,7 @@ function ini_num(ini, key) {
 
 # gets value of a key, must be a str
 function ini_str(ini, key) {
-	if (ini[key] == "")
+	if (!(key in ini))
 		return ""
 
 	if (ini_type(ini[key]) != "STR") die(sprintf("Expected STR key in ini: %s", ini[key]))
