@@ -234,6 +234,10 @@ function add_autovars(rules, filepath,     n, fileparts, filename, ext, words, i
 			ini_add_str(rules,"Permalink", ini_str(rules,"Permalink") "." ext)
 		}
 	}
+
+	if (!("Content" in rules)) {
+		ini_add_str(rules, "Content", render_content(rules))
+	}
 }
 
 # copy all elements of array src to array dest

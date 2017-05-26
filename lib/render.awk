@@ -105,14 +105,13 @@ END {
 			sort_desc = 0
 		} else {die(sprintf("Unknown sort order '%s'", ini_str(rules,"sort_order")))}
 		sort_items(date_array, item_array, num_items, sort_desc)
+
+		rules["Items"] = ini_numarr2frag(item_array, num_items)
 		
-		for (i in item_array) {
-			rules[i] = item_array[i]
-		}
 		ini_add_str(rules,"num_Items", num_items)
 
 		print apply_template(rules, ini_str(rules,"template"))
-		
+
 	} else {
 		die(sprintf("Cannot parse file %s: Unknown action '%s'", filename, ini_str(rules,"action")) )
 	}

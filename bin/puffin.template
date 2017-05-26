@@ -16,6 +16,14 @@ if [ -z "${AWK_ARGS}" ]; then
     AWK_ARGS=''
 fi
 
+if [ "$1" = "--debug"  ] ; then
+    shift
+    AWK=gawk
+    DEBUG=TRUE
+else
+    DEBUG=""
+fi
+
 
 case $command in
     "makedepend")
@@ -29,10 +37,14 @@ case $command in
 	shift
 	destfile="$1"
 	shift
-	tmpfile=$(mktemp)
-	${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/render.awk" -v "filename=$filename" -- $puffin_files < /dev/null  > $tmpfile
-	(exit $?) && cp $tmpfile $destfile
-	rm $tmpfile
+	if [ "$DEBUG" ] ; then
+	    ${AWK} --debug ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/render.awk" -v "filename=$filename" -- $puffin_files
+	else
+	    tmpfile=$(mktemp)
+	    ${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/render.awk" -v "filename=$filename" -- $puffin_files < /dev/null > $tmpfile
+	    (exit $?) && cp $tmpfile $destfile
+	    rm $tmpfile
+	fi
 	;;
     "rules")
 	filename="$1"
@@ -41,7 +53,7 @@ case $command in
 	    echo error: you must supply a filename! 1>&2
 	    exit 1
 	fi
-	echo ${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/rules.awk" -v "filename=$filename" -- $puffin_files < /dev/null
+	${AWK} ${AWK_ARGS} $VARS $LIBS -f "${puf_lib}/rules.awk" -v "filename=$filename" -- $puffin_files < /dev/null
 	;;
     *)
 	echo ERROR: Unknown sub command: $command

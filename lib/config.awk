@@ -2,10 +2,39 @@
 
 
 BEGIN {INI_SEP = ":"}
+
+function unescape(str,   ret, loc) {
+	while (length(str) > 0) {
+		loc = index(str,"@")
+		if (loc == 0) {
+			return ret str
+		}
+		if (loc > 1) {
+			ret = ret substr(str, 1, loc-1)
+		}
+
+		if (loc == length(str)) {
+			die("escape at end of string")
+		}
+		
+		str = substr(str, loc+1)
+
+		if (index(str, "@") == 1) {
+			ret = ret "@"
+		} else if (index(str, "n") == 1) {
+			ret = ret "\n"
+		} else die(sprintf("unexpected escape char %s", substr(str,1,1)))
+
+		str = substr(str, 2)
+		
+	}
+	
+}
+
 # converts string containing rules into dict
 # note, does not clear out dest array
 # string must be an ini file fragment
-function ini_parsefrag(frag, ini, curkey,   type,l, lines, n, sep, payload, key) {
+function ini_parsefrag(frag, ini, curkey,   type,l, lines, n, sep, payload, key, num_elem, i) {
 
 	if (frag == "") return
 
@@ -29,10 +58,21 @@ function ini_parsefrag(frag, ini, curkey,   type,l, lines, n, sep, payload, key)
 			key = substr(lines[l], 1, n-1)
 			
 			# unescape newlines
-			gsub("@n", "\n", payload)
-			gsub("@@", "@", payload)
-			ini[key] = payload
+			ini[key] = unescape(payload)
 		}
+	} else if (type == "ARRAY") {
+		num_elem = split(ini_val(frag), lines, "\n")
+
+		i = 0
+		for (l = 1; l <= num_elem; l++) {
+			if (lines[l] == "") continue
+
+			payload = lines[l]
+			
+			# unescape newlines
+			ini[++i] = unescape(payload)
+		}
+		ini["_size"] = i # add special variable to count size of array
 	}
 }
 
@@ -55,6 +95,27 @@ function ini_arr2frag(array,     frag, key, val, line) {
 		return frag
 	}
 }
+
+function ini_numarr2frag(array, n_elems,    i, frag, val, line) {
+	frag = "ARRAY" INI_SEP
+	for (i = 1; i <= n_elems; i++) {
+		# escape newlines using @ and \n values
+		val = array[i]
+		gsub("@", "@@", val)
+		gsub("\n", "@n", val)
+		
+		line = val "\n"
+		frag = frag line
+	}
+	
+	# if we have added at least one line, we need to chop off the end
+	if (line != "") {
+		return substr(frag, 1,length(frag)-1)
+	} else {
+		return frag
+	}
+}
+
 
 # converts ini to a rule string. NOT a raw array
 function ini_ini2frag(array,     frag, key, val, line) {
@@ -80,28 +141,34 @@ function ini_ini2frag(array,     frag, key, val, line) {
 
 
 # returns string representation of ini file
-function ini_print(ini, name,   key, hashes, tmp_ini, retval) {
-	if (name != "") retval = sprintf("[%s]\n", name)
-	
-	for (key in ini) {
-		type = ini_type(ini[key])
-		if (type == "STR") {
-			retval = retval sprintf("%s=%s\n", key, ini_val(ini[key]))
-		} else if (type == "HASH") {
-			# save hashes for later
-			hashes[key]=1
-		} else {die(sprintf("Unknown type %s", type))}
+function ini_print(ini,   key, hashes, arrays, tmp_ini, retval, i) {
+	if ("_size" in ini) {
+		retval = retval "["
+		for (key=1; key <= ini["_size"]; key++) {
+			type = ini_type(ini[key])
+			if (type == "STR") {
+				retval = retval sprintf("\"%s\",", ini_val(ini[key]))
+			} else if (type == "HASH" || type == "ARRAY") {
+				split("",tmp_ini)
+				ini_parsefrag(ini[key],tmp_ini)
+				retval = retval sprintf("%s,",ini_print(tmp_ini))
+			} else {die(sprintf("Unknown type %s", type))}
+		}
+		retval = retval "]"
+	} else {
+		retval = retval "{"
+		for (key in ini) {
+			type = ini_type(ini[key])
+			if (type == "STR") {
+				retval = retval sprintf("\"%s\" : \"%s\",", key, ini_val(ini[key]))
+			} else if (type == "HASH" || type == "ARRAY") {
+				split("",tmp_ini)
+				ini_parsefrag(ini[key],tmp_ini)
+				retval = retval sprintf("\"%s\" : %s,", key, ini_print(tmp_ini))
+			} else {die(sprintf("Unknown type %s", type))}
+		}
+		retval = retval "}"
 	}
-
-	for (key in hashes) {
-		split("",tmp_ini)
-		ini_parsefrag(ini[key],tmp_ini)
-		if (name != "")
-			retval = retval ini_print(tmp_ini, name "." key)
-		else
-			retval = retval ini_print(tmp_ini, key)
-	}
-	
 	return retval
 }
 
@@ -143,6 +210,15 @@ function ini_hash(ini, key, dest) {
 		return
 
 	if (ini_type(ini[key]) != "HASH") die(sprintf("Expected HASH key in ini: %s", ini[key]))
+
+	ini_parsefrag(ini[key], dest)
+}
+
+# converts key key of ini into array stored in dest
+function ini_array(ini, key, dest) {
+	if (ini[key] == "") return
+
+	if (ini_type(ini[key]) != "ARRAY") die(sprintf("Expected ARRAY key in ini: %s", ini[key]))
 
 	ini_parsefrag(ini[key], dest)
 }

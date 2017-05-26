@@ -169,6 +169,11 @@ depends on fixing dates
 use template extension to determine what file turns in to
 * TODO Make template separate directory, like hugo
 * TODO Add Sitemap
-* TODO Add arrays to ini parser
+* DONE Add arrays to ini parser
+  CLOSED: [2017-05-25 Thu 21:01]
 * DONE fix broken atom rendering
   CLOSED: [2017-05-23 Tue 22:14]
+* TODO Add categories
+should generate pages for each category
+* TODO make action comands just output the hash
+
