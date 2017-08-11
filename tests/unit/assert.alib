@@ -1,0 +1,35 @@
+function assertEquals(a,b)
+{
+	if (a != b) {
+		print "ERROR: a != b"
+		printf("a: %s\t b:%s\n",a,b)
+		exit -1
+	}
+}
+
+function assertNotEquals(a,b)
+{
+	if (a == b) {
+		print "ERROR: a == b"
+		printf("a: %s\tb: %s\n",a,b)
+		exit -1
+	}
+}
+
+function assertTrue(a)
+{
+	if (!a) {
+		print "ERROR: !a"
+		printf("a: %s\n",a)
+		exit -1
+	}
+}
+
+function assertFalse(a)
+{
+	if (a) {
+		print "ERROR: a"
+		printf("a: %s\n",a)
+		exit -1
+	}
+}
