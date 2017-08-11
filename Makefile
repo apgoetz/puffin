@@ -1,5 +1,9 @@
 include config.mk
+
+AWKLIB = ${PREFIX}/lib/puffin
+
 FILES=puffin
+
 LIBS=render.awk config.awk make_depend.awk puffin.ini lib.awk templater.awk rules.awk
 
 all: 
